@@ -10,7 +10,7 @@
   - Response `POST /identify` trả `expire_time` (Unix timestamp), không phải `ttl_seconds`.
   - `negativeTtlS` và `devIp` đều là tham số `init()` có thật, không phải cái này thay cái kia.
   - Khoá localStorage đúng là `telcoads:sid` (chữ thường).
-- README và `docs/integration-guide.md` viết lại theo đúng văn phong tài liệu tích hợp nội bộ.
+- README và `docs/integration-guide.md` viết lại rõ ràng, nhất quán hơn.
 
 ## [1.0.0] - 2026-08-22
 
