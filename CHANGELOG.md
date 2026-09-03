@@ -2,6 +2,16 @@
 
 Định dạng dựa theo [Keep a Changelog](https://keepachangelog.com/), versioning theo [SemVer](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- Đối chiếu tài liệu với `dist/telcoads-sdk.min.js` thực tế và sửa lại cho khớp:
+  - Response `POST /identify` trả `expire_time` (Unix timestamp), không phải `ttl_seconds`.
+  - `negativeTtlS` và `devIp` đều là tham số `init()` có thật, không phải cái này thay cái kia.
+  - Khoá localStorage đúng là `telcoads:sid` (chữ thường).
+- README và `docs/integration-guide.md` viết lại theo đúng văn phong tài liệu tích hợp nội bộ.
+
 ## [1.0.0] - 2026-08-22
 
 ### Added
