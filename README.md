@@ -6,9 +6,9 @@ Web SDK được tích hợp trên website của Publisher để lấy `sid` t�
 
 ## Cài đặt SDK
 
-Đối tác không cần và không nên cấu hình Base URL hoặc môi trường. SDK tự gọi đúng endpoint theo cấu hình của bản phát hành. Endpoint chính thức (`{{sdk-cdn-host}}`) do TelcoAds cấp riêng theo môi trường/hợp đồng tích hợp (ví dụ bản UAT hoặc Production) — dùng đúng giá trị TelcoAds cung cấp cho bạn.
+Đối tác không cần và không nên tự cấu hình Base URL hoặc môi trường. TelcoAds sẽ cấp endpoint SDK chính thức (`{{sdk-cdn-host}}`) riêng theo môi trường/hợp đồng tích hợp của bạn (ví dụ UAT hoặc Production) — dùng đúng giá trị được cấp.
 
-Nếu chỉ cần link nhanh để tham khảo/thử nghiệm, có thể lấy trực tiếp file trong repo này qua jsDelivr (ghim theo tag phát hành, không dùng `@main` để tránh nhận thay đổi ngoài ý muốn):
+Cần link nhanh để tham khảo hoặc thử nghiệm thì lấy trực tiếp file trong repo này qua jsDelivr. Nên ghim theo tag phát hành (`@v1.0.0`), không dùng `@main`, để tránh nhận thay đổi ngoài ý muốn khi có bản cập nhật:
 
 ```html
 <script src="https://cdn.jsdelivr.net/gh/BigDataServices-ViettelTelecom/telcoads-webapp-sdk@v1.0.0/dist/telcoads-sdk.min.js"
@@ -33,7 +33,7 @@ TelcoAds.getSid().then(function (sid) {
 });
 ```
 
-`getSid()` không bao giờ throw/reject: mọi lỗi đều trả về `null` để luồng quảng cáo của Publisher không bị vỡ. Ngược lại `init()` throw ngay khi cấu hình sai — đây là lỗi tích hợp, cần lộ ra lúc phát triển.
+`getSid()` không bao giờ throw hay reject — mọi lỗi đều trả về `null`, để luồng quảng cáo không bị gián đoạn. Ngược lại, `init()` sẽ throw ngay nếu thiếu tham số bắt buộc hoặc cấu hình sai. Đây là lỗi cấu hình lúc tích hợp, cần phát hiện và sửa ngay khi code, không nên để lọt xuống production.
 
 Xem ví dụ chạy được tại [`examples/basic-website`](examples/basic-website).
 
@@ -60,7 +60,7 @@ Xem ví dụ chạy được tại [`examples/basic-website`](examples/basic-web
 
 ## Lưu ý khi tích hợp
 
-- Không tự đổi endpoint, không tự thêm header `X-Forwarded-For`: địa chỉ IP dùng để định danh do hệ thống TelcoAds xác định từ kết nối thực tế.
+- Không tự đổi endpoint, không tự thêm header `X-Forwarded-For` — TelcoAds tự xác định IP người dùng từ kết nối thực tế để định danh.
 - Không nhúng `DSP_CLIENT_SECRET` hoặc bất kỳ credential DSP nào vào trang web/ứng dụng. Các API dành cho DSP (`/v1/segments`, `/v1/match`) luôn gọi từ backend, xem [docs/integration-guide.md](docs/integration-guide.md).
 - `sid` sau khi hết hạn (mặc định 300 giây) sẽ không thể dùng để match segment.
 - Coi `sid = null` là trạng thái bình thường (người dùng ngoài mạng Viettel, dùng Wi-Fi…): vẫn gửi ad request, chỉ là không có dữ liệu segment.
