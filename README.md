@@ -6,20 +6,24 @@ SDK JavaScript thuần (vanilla JS), một file, không phụ thuộc thư việ
 
 ## Cài đặt
 
+Endpoint SDK chính thức (`{{sdk-cdn-host}}`) do TelcoAds cấp riêng theo môi trường/hợp đồng tích hợp — dùng đúng giá trị TelcoAds cung cấp cho bạn, xem [docs/integration-guide.md](docs/integration-guide.md#11-tích-hợp-qua-sdk-webapp).
+
+Nếu chỉ cần link nhanh để tham khảo/thử nghiệm, có thể lấy trực tiếp file trong repo này qua jsDelivr (ghim theo tag phát hành, không dùng `@main` để tránh nhận thay đổi ngoài ý muốn):
+
 ```html
 <script src="https://cdn.jsdelivr.net/gh/BigDataServices-ViettelTelecom/telcoads-webapp-sdk@v1.0.0/dist/telcoads-sdk.min.js"
         crossorigin="anonymous"></script>
 ```
 
-Ghim theo đúng tag phát hành (`@v1.0.0`) thay vì `@main`, để tránh nhận thay đổi ngoài ý muốn khi có bản cập nhật mới. Xem các bản phát hành tại [Releases](../../releases).
+Xem các bản phát hành tại [Releases](../../releases).
 
 ## Sử dụng
 
 ```js
 TelcoAds.init({
-  siteId:   'your-site-id',              // mã website/app do TelcoAds cấp
-  clientId: 'your-publisher-client-id',  // mã Publisher do TelcoAds cấp
-  endpoint: 'https://{{api-host}}/identify' // do TelcoAds cấp theo môi trường (UAT/Production)
+  siteId:   '{{site-id}}',              // mã website/app do TelcoAds cấp
+  clientId: '{{publisher-client-id}}',  // mã Publisher do TelcoAds cấp
+  endpoint: '{{TELCOADS_BASE_URL}}/identify' // do TelcoAds cấp theo môi trường
 });
 
 // tại thời điểm chuẩn bị gửi ad request:
