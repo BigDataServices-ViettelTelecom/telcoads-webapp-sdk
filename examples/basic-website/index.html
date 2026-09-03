@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <title>TelcoAds Web SDK — Ví dụ tích hợp cơ bản</title>
+</head>
+<body>
+  <h1>TelcoAds Web SDK — Ví dụ tích hợp cơ bản</h1>
+  <p>Mở Console (F12) để xem log <code>sid</code> nhận được.</p>
+
+  <!-- Ghim theo tag phát hành cụ thể trong dự án thực tế, ví dụ @v1.0.0 -->
+  <script src="https://cdn.jsdelivr.net/gh/BigDataServices-ViettelTelecom/telcoads-webapp-sdk@main/dist/telcoads-sdk.min.js"
+          crossorigin="anonymous"></script>
+  <script>
+    TelcoAds.init({
+      siteId:   'demo-site',
+      clientId: 'demo-client-id',
+      endpoint: 'https://{{api-host}}/identify', // thay bằng endpoint TelcoAds cấp cho môi trường của bạn
+      debug: true
+    });
+
+    TelcoAds.getSid().then(function (sid) {
+      if (sid) {
+        console.log('[Demo] Nhận được sid:', sid);
+        // gắn sid vào ad request thực tế của bạn ở đây
+      } else {
+        console.log('[Demo] Không có sid — gửi ad request không cá nhân hoá.');
+      }
+    });
+  </script>
+</body>
+</html>

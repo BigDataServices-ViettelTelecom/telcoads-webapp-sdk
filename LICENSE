@@ -1,0 +1,17 @@
+Copyright (c) 2026 Viettel Telecom - Big Data Services
+
+Mã nguồn và tài liệu trong repository này (TelcoAds Web SDK) được cung cấp
+độc quyền cho các đối tác (Publisher, Adtech, DSP) đang tích hợp với nền
+tảng TelcoAds trong khuôn khổ thoả thuận/hợp đồng hợp tác hiện hành.
+
+Được phép:
+- Sử dụng, sao chép và nhúng file dist/telcoads-sdk.min.js vào website/app
+  của đối tác nhằm mục đích tích hợp với TelcoAds.
+
+Không được phép, trừ khi có văn bản chấp thuận trước từ Viettel Telecom:
+- Phân phối lại, bán, cấp phép lại mã nguồn hoặc tài liệu cho bên thứ ba
+  ngoài mục đích tích hợp với TelcoAds.
+- Sử dụng ngoài phạm vi thoả thuận hợp tác đã ký với Viettel Telecom.
+
+Phần mềm được cung cấp "nguyên trạng", không kèm bảo đảm dưới bất kỳ hình
+thức nào. Mọi quyền không được cấp rõ ràng trong văn bản này đều được bảo lưu.
