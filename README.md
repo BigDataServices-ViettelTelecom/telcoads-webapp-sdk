@@ -1,29 +1,31 @@
 # TelcoAds Web SDK
 
-Web SDK được tích hợp trên website của Publisher để lấy `sid` tại thời điểm người dùng truy cập và chuyển `sid` cùng ad request sang hệ thống Adtech. SDK JavaScript của TelcoAds là 1 file vanilla JS, không dependency, không cần build. SDK chỉ gọi `POST /identify` để lấy `sid` cho lượt truy cập; `POST /v1/match` là luồng server-to-server của Adtech, SDK không gọi.
+Web SDK được tích hợp trên website của Publisher để lấy `sid` tại thời điểm người dùng truy cập và chuyển `sid` cùng ad request sang hệ thống Adtech. SDK là 1 file vanilla JS (~4,7 KB), không dependency, không cần build.
 
-> Tài liệu tích hợp đầy đủ (API backend cho Adtech/DSP: `/identify`, `/v1/segments`, `/v1/match`, mã lỗi, retry...) xem tại **[docs/integration-guide.md](docs/integration-guide.md)**.
+**Phiên bản hiện tại: v2.0.0** — định danh qua cổng xác thực của nhà mạng (`GET /ident`). Mã gọi SDK không đổi so với v1 (`TelcoAds.init()` rồi `TelcoAds.getSid()`); cần lưu ý thêm HTTPS, đăng ký domain, CSP và `popup: false` (xem bên dưới).
+
+> Tài liệu tích hợp đầy đủ (Web SDK, API backend cho Adtech/DSP: `/ident`, `/v1/segments`, `/v1/match`, mã lỗi, retry…) xem tại **[docs/integration-guide.md](docs/integration-guide.md)**.
 
 ## Cài đặt SDK
 
-Đối tác không cần và không nên tự cấu hình Base URL hoặc môi trường. TelcoAds sẽ cấp endpoint SDK chính thức (`{{sdk-cdn-host}}`) riêng theo môi trường/hợp đồng tích hợp của bạn (ví dụ UAT hoặc Production) — dùng đúng giá trị được cấp.
-
-Cần link nhanh để tham khảo hoặc thử nghiệm thì lấy trực tiếp file trong repo này qua jsDelivr. Nên ghim theo tag phát hành (`@v1.0.0`), không dùng `@main`, để tránh nhận thay đổi ngoài ý muốn khi có bản cập nhật:
+Nhúng qua jsDelivr, ghim theo tag phát hành (không dùng `@main`) và giữ thuộc tính `integrity`:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/BigDataServices-ViettelTelecom/telcoads-webapp-sdk@v1.0.0/dist/telcoads-sdk.min.js"
+<script src="https://cdn.jsdelivr.net/gh/BigDataServices-ViettelTelecom/telcoads-webapp-sdk@v2.0.0/dist/telcoads-sdk-v2.min.js"
+        integrity="sha384-M8tXYunqYS+/LsdrX0q4xgPraXz4+JQc35kfDyKdIGGdsnvhZM5h0TxFy9cuQhL5"
         crossorigin="anonymous"></script>
 ```
 
-Xem các bản phát hành tại [Releases](../../releases).
+Muốn tự host: tải `dist/telcoads-sdk-v2.min.js` tại tag `v2.0.0`, giữ nguyên `integrity` ở trên.
 
 ## Nhúng và khởi tạo
 
 ```js
 TelcoAds.init({
-  siteId:   '{{site-id}}',              // mã website/app đã đăng ký
-  clientId: '{{publisher-client-id}}',      // mã Publisher do TelcoAds cấp
-  endpoint: 'https://{{api-host}}/identify' // do TelcoAds cấp theo môi trường
+  siteId:   '{{site-id}}',              // mã website đã đăng ký với TelcoAds
+  clientId: '{{publisher-client-id}}',  // mã Publisher do TelcoAds cấp
+  popup:    false,                      // không mở cửa sổ bật lên (khuyến nghị)
+  timeoutMs: 10000                      // chờ /ident tối đa 10 giây (giai đoạn pilot)
 });
 
 // tại thời điểm gửi ad request:
@@ -33,37 +35,50 @@ TelcoAds.getSid().then(function (sid) {
 });
 ```
 
-`getSid()` không bao giờ throw hay reject — mọi lỗi đều trả về `null`, để luồng quảng cáo không bị gián đoạn. Ngược lại, `init()` sẽ throw ngay nếu thiếu tham số bắt buộc hoặc cấu hình sai. Đây là lỗi cấu hình lúc tích hợp, cần phát hiện và sửa ngay khi code, không nên để lọt xuống production.
+- `getSid()` không bao giờ throw hay reject — mọi lỗi đều trả về `null`, để luồng quảng cáo không bị gián đoạn.
+- `init()` throw `TypeError` ngay nếu cấu hình sai (thiếu `siteId`/`clientId`, `siteId` chứa `~`, `identUrl` rỗng). Đây là lỗi tích hợp, cần phát hiện khi phát triển; nếu cấu hình lấy từ nguồn động, nên bọc `init()` trong `try/catch`.
 
-Xem ví dụ chạy được tại [`examples/basic-website`](examples/basic-website).
+
+Ví dụ tại [`examples/basic-website`](examples/basic-website) (thay `siteId`, `clientId` của bạn).
 
 ## Tham số `init()`
 
 | Tham số | Bắt buộc | Mặc định | Mô tả |
 |---|---|---|---|
-| `siteId` | Có | — | Mã website/app; `sid` được cấp theo từng site. Không chứa ký tự `~`. |
+| `siteId` | Có | — | Mã website; `sid` được cấp theo từng site. Không chứa ký tự `~`. |
 | `clientId` | Có | — | Mã Publisher do TelcoAds cấp. Sai hoặc chưa kích hoạt sẽ nhận `401`. |
-| `endpoint` | Có | — | URL đầy đủ tới `/identify` theo môi trường TelcoAds cấp. |
-| `channelType` | Không | `website` | Chỉ nhận `website` hoặc `app`. |
-| `timeoutMs` | Không | `2000` | Thời gian chờ tối đa của request identify, tránh làm chậm tải trang. |
-| `negativeTtlS` | Không | `60` | Số giây SDK nhớ kết quả không định danh được (HTTP 404 hoặc 401) trước khi gọi lại `/identify`. |
-| `devIp` | Không | — | Chỉ dùng dev/test cục bộ để gửi IP giả kèm request identify. Không bật ở production. |
+| `identUrl` | Không | Production | URL đầy đủ tới `/ident`. Chỉ truyền khi TelcoAds cấp môi trường khác (ví dụ UAT). |
+| `popup` | Không | `true` | Khuyến nghị luôn khai báo `false`: SDK xử lý qua iframe, không mở cửa sổ bật lên. `true`: thử mở popup; bị chặn thì gọi `onAuthUrl` (nếu có) hoặc dùng iframe. |
+| `onAuthUrl` | Không | — | Chỉ dùng khi `popup: true`. `function(url)` — gọi khi popup bị chặn để trang hiện liên kết cho người dùng bấm (hiệu lực ~30 giây). |
+| `authTimeoutMs` | Không | Tự động | Chờ kết quả xác thực: 60000 khi popup/liên kết, 8000 khi iframe. |
+| `timeoutMs` | Không | `2000` | Thời gian chờ tối đa của request `/ident`; quá thời gian trả `null`. Giai đoạn pilot dùng `10000`. |
+| `negativeTtlS` | Không | `60` | Số giây nhớ kết quả "không định danh được" trước khi thử lại. |
 | `debug` | Không | `false` | Bật cảnh báo console khi có lỗi. |
 
 ## Hành vi SDK
 
-- `sid` và thời hạn được lưu ở localStorage khoá `telcoads:sid`; SDK tự trừ hao 5 giây trước hạn và tự gọi lại identify khi hết hạn hoặc khi bản ghi thuộc site khác.
-- Nhiều ad slot cùng gọi `getSid()` chỉ sinh 1 request identify (single-flight).
-- Không định danh được (404) hoặc sai `client_id` (401): trả `null` và nhớ kết quả trong `negativeTtlS` giây.
-- Lỗi tạm (429, 5xx, timeout, lỗi mạng): trả `null` và tạm dừng gọi lại 10 giây; không ghi vào localStorage.
-- Trình duyệt chặn localStorage (chế độ riêng tư, hết quota): SDK tự chuyển sang bộ nhớ tạm trong phiên trang.
+- `sid` và thời hạn được lưu ở localStorage khoá `telcoads:sid`; SDK tự trừ hao 5 giây trước hạn và tự định danh lại khi hết hạn hoặc khi bản ghi thuộc site khác.
+- Nhiều ad slot cùng gọi `getSid()` chỉ sinh 1 phiên định danh (single-flight).
+- Khi đã có sẵn kết quả, `/ident` có thể trả `sid` ngay. Trường hợp còn lại: SDK mở cổng xác thực (popup hoặc iframe), nhận kết quả qua `postMessage`, dự phòng hỏi lại `/ident/result`.
+- Không định danh được (Wi-Fi, ngoài mạng Viettel) hoặc sai `clientId` (401): trả `null` và nhớ kết quả trong `negativeTtlS` giây.
+- Lỗi tạm (429, 5xx, timeout, lỗi mạng): trả `null` và tạm dừng gọi lại 10 giây.
+- Trình duyệt chặn localStorage: SDK tự chuyển sang bộ nhớ tạm trong phiên trang.
 
 ## Lưu ý khi tích hợp
 
-- Không tự đổi endpoint, không tự thêm header `X-Forwarded-For` — TelcoAds tự xác định IP người dùng từ kết nối thực tế để định danh.
-- Không nhúng `DSP_CLIENT_SECRET` hoặc bất kỳ credential DSP nào vào trang web/ứng dụng. Các API dành cho DSP (`/v1/segments`, `/v1/match`) luôn gọi từ backend, xem [docs/integration-guide.md](docs/integration-guide.md).
-- `sid` sau khi hết hạn (mặc định 300 giây) sẽ không thể dùng để match segment.
-- Coi `sid = null` là trạng thái bình thường (người dùng ngoài mạng Viettel, dùng Wi-Fi…): vẫn gửi ad request, chỉ là không có dữ liệu segment.
+- Trang nhúng SDK phải chạy HTTPS. Gửi TelcoAds danh sách domain (gồm `www`, subdomain, staging) để đăng ký và nhận `siteId`/`clientId`.
+- Gọi `getSid()` sau khi trang đã có `<body>`. Nếu website dùng Content-Security-Policy: `script-src https://cdn.jsdelivr.net`, `connect-src https://affapi.viettel.vn`, `frame-src https://affapi.viettel.vn https://developers-private.viettel.vn`.
+- SDK v1 (`POST /identify`) đã ngừng hoạt động. Gỡ bản v1 khỏi trang trước khi nhúng v2.
+- Không nhúng `DSP_CLIENT_SECRET` hoặc credential DSP nào vào trang web. Các API backend (`/v1/segments`, `/v1/match`) luôn gọi từ server.
+- `sid` hết hạn sau 300 giây (mặc định). Coi `sid = null` là trạng thái bình thường: vẫn gửi ad request, chỉ là không có dữ liệu segment.
+
+## Nâng cấp từ v1 (bắt buộc)
+
+1. Đổi thẻ `<script>` sang `dist/telcoads-sdk-v2.min.js` tại tag `v2.0.0`, kèm `integrity` mới.
+2. Bỏ `endpoint`, `channelType`, `devIp` khỏi `init()` (v2 không dùng); thêm `popup: false` nếu gọi `getSid()` lúc tải trang.
+3. Bổ sung CSP (nếu có) như mục Lưu ý ở trên.
+
+Chi tiết: [Nâng cấp từ v1](docs/integration-guide.md#nâng-cấp-từ-v1). SDK v1 đã ngừng hoạt động, đối tác đang dùng v1 cần nâng cấp.
 
 ## Changelog
 
@@ -71,7 +86,7 @@ Xem [CHANGELOG.md](CHANGELOG.md).
 
 ## Hỗ trợ
 
-Liên hệ đầu mối tích hợp TelcoAds được cấp cho đối tác của bạn.
+Liên hệ đầu mối tích hợp TelcoAds được cấp cho đối tác của bạn. Khi báo lỗi, gửi kèm `request_id` trong response của TelcoAds.
 
 ## Giấy phép
 
