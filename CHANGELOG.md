@@ -2,6 +2,17 @@
 
 Định dạng dựa theo [Keep a Changelog](https://keepachangelog.com/), versioning theo [SemVer](https://semver.org/).
 
+## [2.0.1] - 2026-10-14
+
+### Changed
+
+- SDK luôn xác thực qua iframe, không mở cửa sổ bật lên trong mọi trường hợp (kể cả khi `getSid()` được gọi trong thao tác của người dùng).
+- `authTimeoutMs` mặc định 8000 ms.
+
+### Removed
+
+- Tham số `popup` và `onAuthUrl`. Cấu hình cũ có truyền hai tham số này vẫn chạy bình thường (SDK bỏ qua), không cần sửa.
+
 ## [2.0.0] - 2026-10-13
 
 ### Added

@@ -10,14 +10,13 @@
   <p>Mở trang bằng 4G Viettel để nhận <code>sid</code>; Wi-Fi sẽ trả <code>null</code>. Mở Console (F12) để xem log.</p>
   <p>Kết quả: <code id="result">đang lấy sid…</code></p>
 
-  <script src="https://cdn.jsdelivr.net/gh/BigDataServices-ViettelTelecom/telcoads-webapp-sdk@v2.0.0/dist/telcoads-sdk-v2.min.js"
-          integrity="sha384-M8tXYunqYS+/LsdrX0q4xgPraXz4+JQc35kfDyKdIGGdsnvhZM5h0TxFy9cuQhL5"
+  <script src="https://cdn.jsdelivr.net/gh/BigDataServices-ViettelTelecom/telcoads-webapp-sdk@v2.0.1/dist/telcoads-sdk-v2.min.js"
+          integrity="sha384-zyIFGucuXHVBakv1SMNADojUXbENS8WxfVKkyKt5qzLI2IYxhdMJyZx8qSK0Ldmj"
           crossorigin="anonymous"></script>
   <script>
     TelcoAds.init({
       siteId:   'demo-site',        // thay bằng siteId đã đăng ký với TelcoAds
       clientId: 'demo-client-id',   // thay bằng clientId TelcoAds cấp
-      popup:    false,              // không mở cửa sổ bật lên (khuyến nghị)
       timeoutMs: 10000,             // chờ /ident tối đa 10 giây (giai đoạn pilot)
       debug:    true                // tắt khi lên production
     });
