@@ -1,6 +1,6 @@
 # TelcoAds — Tài liệu hướng dẫn tích hợp
 
-**Phiên bản:** 2.1 (Web SDK v2.0.1) · **Cập nhật:** 14/10/2026
+**Phiên bản:** 2.2 (Web SDK v2.0.1) · **Cập nhật:** 11/11/2026 · [English](integration-guide.en.md)
 
 Tài liệu này hướng dẫn đối tác tích hợp giải pháp TelcoAds vào hệ thống quảng cáo, bao gồm tích hợp Web SDK trên website và kết nối API từ backend. SDK v1 (`POST /identify`) đã ngừng hoạt động; đối tác đang dùng v1 cần nâng cấp theo mục [Nâng cấp từ v1](#nâng-cấp-từ-v1).
 
@@ -65,7 +65,7 @@ Các API không trả số thuê bao hay thông tin nhận dạng trực tiếp 
 
 ## Tích hợp Website với Web SDK
 
-SDK JavaScript của TelcoAds là 1 file vanilla JS (~4,7 KB), không dependency, không cần build. SDK gọi `GET /ident`, khi cần thì mở cổng xác thực qua iframe (không mở cửa sổ bật lên), rồi trả `sid` cho trang. `POST /v1/match` là luồng server-to-server của Adtech, SDK không gọi.
+SDK JavaScript của TelcoAds là 1 file vanilla JS (~4,2 KB), không dependency, không cần build. SDK gọi `GET /ident`, khi cần thì mở cổng xác thực qua iframe (không mở cửa sổ bật lên), rồi trả `sid` cho trang. `POST /v1/match` là luồng server-to-server của Adtech, SDK không gọi.
 
 ### Cài đặt SDK
 
@@ -115,7 +115,7 @@ Chỉ `siteId` và `clientId` là bắt buộc; các tham số khác đã có gi
 | `clientId` | Có | — | Mã Publisher do TelcoAds cấp. Sai hoặc chưa kích hoạt sẽ nhận `401`. |
 | `identUrl` | Không | Production | URL đầy đủ tới `/ident` (ví dụ `https://<host>/…/ident`). Chỉ truyền khi TelcoAds cấp môi trường khác (ví dụ UAT). SDK tự suy ra `/ident/result` từ giá trị này. |
 | `authTimeoutMs` | Không | `8000` | Thời gian chờ tối đa kết quả xác thực qua iframe. |
-| `timeoutMs` | Không | `2000` | Thời gian chờ tối đa của request `/ident`; quá thời gian SDK trả `null`. Giai đoạn pilot khai báo `10000` để không bỏ sót lượt định danh khi máy chủ phản hồi chậm. |
+| `timeoutMs` | Không | `2000` | Thời gian chờ tối đa của request `/ident`; quá thời gian SDK trả `null`. Giai đoạn pilot khai báo `10000` để không bỏ sót lượt định danh khi máy chủ phản hồi chậm. Không bao gồm thời gian xác thực qua iframe (`authTimeoutMs`), xem [Lưu ý khi tích hợp](#lưu-ý-khi-tích-hợp). |
 | `negativeTtlS` | Không | `60` | Số giây SDK nhớ kết quả "không định danh được" trước khi thử lại. |
 | `debug` | Không | `false` | Bật cảnh báo `console.warn` khi có lỗi. |
 
@@ -134,6 +134,7 @@ Chỉ `siteId` và `clientId` là bắt buộc; các tham số khác đã có gi
 - **HTTPS:** trang nhúng SDK phải chạy trên HTTPS. TelcoAds từ chối (400) request định danh từ trang `http://` (trong giai đoạn pilot chấp nhận `http://localhost` để phát triển).
 - **Domain:** gửi TelcoAds danh sách domain sẽ nhúng SDK (bao gồm `www`, subdomain và trang staging, mỗi origin một dòng) để được cấp `siteId`/`clientId` và đăng ký trước khi tích hợp; TelcoAds xác nhận `siteId` tương ứng với từng origin.
 - **Thời điểm gọi:** gọi `getSid()` sau khi trang đã có thẻ `<body>` (SDK có thể cần gắn iframe).
+- **Thời gian chờ:** trường hợp chậm nhất, `getSid()` trả kết quả sau khoảng `timeoutMs` + `authTimeoutMs` (với cấu hình pilot: 10 + 8 = 18 giây); khi `sid` còn hạn, `getSid()` trả ngay. Không chặn hiển thị trang để chờ `getSid()`; nếu ad request có giới hạn thời gian, gửi không kèm `sid` khi hết thời gian chờ.
 - **Content-Security-Policy:** nếu website dùng CSP, bổ sung `script-src https://cdn.jsdelivr.net` (nếu nhúng qua jsDelivr); `connect-src https://affapi.viettel.vn`; `frame-src https://affapi.viettel.vn https://developers-private.viettel.vn`.
 - SDK v1 (`POST /identify`) đã ngừng hoạt động. Gỡ bản v1 khỏi trang trước khi nhúng v2 (hai bản dùng chung biến toàn cục `TelcoAds`).
 - Không nhúng `DSP_CLIENT_SECRET` hoặc bất kỳ credential DSP nào vào trang web. Các API dành cho DSP luôn gọi từ backend.
@@ -345,11 +346,17 @@ Response 200 là đối tượng [Kết quả định danh](#kết-quả-định
 
 | error_code | Nguyên nhân thường gặp |
 |---|---|
-| Lỗi xác thực | Lỗi phát sinh trong quá trình xác thực thuê bao (phiên bị từ chối, phản hồi không hợp lệ, phản hồi chậm…). |
+| *(các mã lỗi xác thực)* | Lỗi phát sinh trong quá trình xác thực thuê bao (phiên bị từ chối, phản hồi không hợp lệ, phản hồi chậm…). Danh sách mã có thể thay đổi; không cần xử lý theo từng mã. |
 | `STATE_EXPIRED` | Phiên định danh quá hạn (mặc định 120 giây) hoặc kết quả đã được đọc. |
 | `INTERNAL_ERROR` | Lỗi hệ thống. |
 
-SDK xử lý tất cả các lỗi trên bằng cách trả `null` và tạm dừng 10 giây; đối tác không cần tự xử lý. Khi cần hỗ trợ, gửi kèm `request_id` cho TelcoAds.
+SDK tự xử lý các lỗi trên và luôn trả `null`, đối tác không cần tự xử lý:
+
+- `401 UNAUTHORIZED`: nhớ kết quả trong `negativeTtlS` giây (mặc định 60) và luôn in cảnh báo console.
+- `403 FORBIDDEN` khi hỏi `/ident/result`: SDK bỏ qua và tiếp tục chờ `postMessage` đến hết `authTimeoutMs`.
+- Các lỗi còn lại (400, 404, 429, 500, lỗi trong Kết quả định danh): tạm dừng gọi lại 10 giây, không ghi vào localStorage.
+
+Khi cần hỗ trợ, gửi kèm `request_id` cho TelcoAds.
 
 ### API Danh mục Segment — GET /v1/segments
 

@@ -1,6 +1,8 @@
 # TelcoAds Web SDK
 
-Web SDK được tích hợp trên website của Publisher để lấy `sid` tại thời điểm người dùng truy cập và chuyển `sid` cùng ad request sang hệ thống Adtech. SDK là 1 file vanilla JS (~4,7 KB), không dependency, không cần build.
+**Tiếng Việt** · [English](README.en.md)
+
+Web SDK được tích hợp trên website của Publisher để lấy `sid` tại thời điểm người dùng truy cập và chuyển `sid` cùng ad request sang hệ thống Adtech. SDK là 1 file vanilla JS (~4,2 KB), không dependency, không cần build.
 
 **Phiên bản hiện tại: v2.0.1** — định danh qua cổng xác thực của nhà mạng (`GET /ident`). Mã gọi SDK không đổi so với v1 (`TelcoAds.init()` rồi `TelcoAds.getSid()`); cần lưu ý thêm HTTPS, đăng ký domain và CSP (xem bên dưới).
 
@@ -37,7 +39,6 @@ TelcoAds.getSid().then(function (sid) {
 - `getSid()` không bao giờ throw hay reject — mọi lỗi đều trả về `null`, để luồng quảng cáo không bị gián đoạn.
 - `init()` throw `TypeError` ngay nếu cấu hình sai (thiếu `siteId`/`clientId`, `siteId` chứa `~`, `identUrl` rỗng). Đây là lỗi tích hợp, cần phát hiện khi phát triển; nếu cấu hình lấy từ nguồn động, nên bọc `init()` trong `try/catch`.
 
-
 Ví dụ tại [`examples/basic-website`](examples/basic-website) (thay `siteId`, `clientId` của bạn).
 
 ## Tham số `init()`
@@ -48,7 +49,7 @@ Ví dụ tại [`examples/basic-website`](examples/basic-website) (thay `siteId`
 | `clientId` | Có | — | Mã Publisher do TelcoAds cấp. Sai hoặc chưa kích hoạt sẽ nhận `401`. |
 | `identUrl` | Không | Production | URL đầy đủ tới `/ident`. Chỉ truyền khi TelcoAds cấp môi trường khác (ví dụ UAT). |
 | `authTimeoutMs` | Không | `8000` | Thời gian chờ tối đa kết quả xác thực. |
-| `timeoutMs` | Không | `2000` | Thời gian chờ tối đa của request `/ident`; quá thời gian trả `null`. Giai đoạn pilot dùng `10000`. |
+| `timeoutMs` | Không | `2000` | Thời gian chờ tối đa của request `/ident`; quá thời gian trả `null`. Giai đoạn pilot dùng `10000`. Không bao gồm `authTimeoutMs`: chậm nhất `getSid()` mất khoảng `timeoutMs` + `authTimeoutMs` (pilot: 18 giây). |
 | `negativeTtlS` | Không | `60` | Số giây nhớ kết quả "không định danh được" trước khi thử lại. |
 | `debug` | Không | `false` | Bật cảnh báo console khi có lỗi. |
 
